@@ -1,0 +1,220 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/technical-audit.schema.json",
+  "title": "Bounded same-origin technical audit report",
+  "type": "object",
+  "required": [
+    "agent",
+    "schema_version",
+    "status",
+    "checked_at",
+    "inputs",
+    "origin",
+    "robots",
+    "sitemap",
+    "crawl",
+    "pages",
+    "internal_404",
+    "findings",
+    "not_checked"
+  ],
+  "properties": {
+    "agent": {"const": "technical_audit"},
+    "schema_version": {"const": 1},
+    "status": {"enum": ["completed", "blocked"]},
+    "checked_at": {"type": "string", "minLength": 1},
+    "inputs": {
+      "type": "object",
+      "required": ["site", "max_pages"],
+      "properties": {
+        "site": {"type": "string", "minLength": 1},
+        "max_pages": {"type": "integer", "minimum": 1},
+        "output": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "origin": {"type": "string", "minLength": 1},
+    "robots": {
+      "type": "object",
+      "required": ["url", "status", "error", "sitemaps", "skipped_reason", "blocked"],
+      "properties": {
+        "url": {"type": "string"},
+        "status": {"type": "integer"},
+        "error": {"type": ["string", "null"]},
+        "sitemaps": {"type": "array", "items": {"type": "string"}},
+        "skipped_reason": {"type": ["string", "null"]},
+        "blocked": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["url", "rule", "referrer"],
+            "properties": {
+              "url": {"type": "string"},
+              "rule": {"type": "string"},
+              "referrer": {"type": ["string", "null"]}
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "sitemap": {
+      "type": "object",
+      "required": ["documents", "urls", "off_origin_urls", "truncated"],
+      "properties": {
+        "documents": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["url", "status", "type", "error"],
+            "properties": {
+              "url": {"type": "string"},
+              "status": {"type": ["integer", "null"]},
+              "type": {
+                "enum": ["urlset", "sitemapindex", "invalid", "unknown", "missing", "error", "skipped"]
+              },
+              "error": {"type": ["string", "null"]}
+            },
+            "additionalProperties": false
+          }
+        },
+        "urls": {"type": "array", "items": {"type": "string"}},
+        "off_origin_urls": {"type": "array", "items": {"type": "string"}},
+        "truncated": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "crawl": {
+      "type": "object",
+      "required": ["status", "max_pages", "fetched_pages", "truncated", "reason", "skipped_reason"],
+      "properties": {
+        "status": {"enum": ["completed", "not_checked"]},
+        "max_pages": {"type": "integer", "minimum": 1},
+        "fetched_pages": {"type": "integer", "minimum": 0},
+        "truncated": {"type": "boolean"},
+        "reason": {"type": ["string", "null"]},
+        "skipped_reason": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "pages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "url",
+          "requested_url",
+          "final_url",
+          "status",
+          "content_type",
+          "title",
+          "description",
+          "h1",
+          "canonical",
+          "noindex",
+          "missing_alt",
+          "error"
+        ],
+        "properties": {
+          "url": {"type": "string"},
+          "requested_url": {"type": "string"},
+          "final_url": {"type": "string"},
+          "status": {"type": "integer"},
+          "content_type": {"type": "string"},
+          "title": {"type": "string"},
+          "description": {"type": "string"},
+          "h1": {"type": "array", "items": {"type": "string"}},
+          "canonical": {"type": ["string", "null"]},
+          "noindex": {"type": "boolean"},
+          "missing_alt": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["src"],
+              "properties": {"src": {"type": "string"}},
+              "additionalProperties": false
+            }
+          },
+          "error": {"type": ["string", "null"]}
+        },
+        "additionalProperties": false
+      }
+    },
+    "internal_404": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["to", "status", "from"],
+        "properties": {
+          "to": {"type": "string"},
+          "status": {"const": 404},
+          "from": {"type": "array", "items": {"type": "string"}}
+        },
+        "additionalProperties": false
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "check",
+          "url",
+          "observation",
+          "source",
+          "severity",
+          "impact",
+          "fix",
+          "recheck",
+          "checked_at"
+        ],
+        "properties": {
+          "check": {
+            "enum": [
+              "missing_title",
+              "missing_description",
+              "missing_h1",
+              "multiple_h1",
+              "missing_canonical",
+              "canonical_cross_origin",
+              "noindex",
+              "missing_alt",
+              "redirect",
+              "internal_404",
+              "http_status"
+            ]
+          },
+          "url": {"type": "string"},
+          "observation": {"type": "string"},
+          "source": {"const": "crawl"},
+          "severity": {"enum": ["high", "medium", "low"]},
+          "impact": {
+            "type": "string",
+            "minLength": 1,
+            "not": {"enum": ["high", "medium", "low"]}
+          },
+          "fix": {"type": "string"},
+          "recheck": {"type": "string"},
+          "checked_at": {"type": "string", "minLength": 1}
+        },
+        "additionalProperties": false
+      }
+    },
+    "not_checked": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["check", "label", "status", "reason"],
+        "properties": {
+          "check": {"enum": ["gsc", "psi", "webmaster", "on_page"]},
+          "label": {"type": "string", "minLength": 1},
+          "status": {"const": "not_checked"},
+          "reason": {"type": "string", "minLength": 1}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

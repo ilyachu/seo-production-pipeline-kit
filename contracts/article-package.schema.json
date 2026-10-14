@@ -1,0 +1,379 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/seo-article-package.schema.json",
+  "title": "SEO article package",
+  "description": "Один пакет SEO-прогона. Семантика начинается после technical baseline. Источник без доступа помечается not_checked с причиной. Запись идёт в один адаптер и только после audit pass. Готовая публикация требует read-back, предпросмотр и проверки живого URL.",
+  "type": "object",
+  "required": ["version", "topic", "status"],
+  "properties": {
+    "version": {"const": "1.0"},
+    "topic": {"type": "string", "minLength": 1},
+    "status": {"enum": ["ready", "needs_input", "blocked", "failed"]},
+    "business_goal": {"type": ["string", "null"]},
+    "region": {"type": ["string", "null"]},
+    "technical": {
+      "type": "object",
+      "properties": {
+        "status": {"enum": ["ready", "needs_input", "blocked", "failed"]},
+        "artifact": {"type": ["string", "null"]},
+        "checked_at": {"type": ["string", "null"]},
+        "not_checked": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/sourceCheck"}
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"status": {"const": "ready"}},
+            "required": ["status"]
+          },
+          "then": {
+            "required": ["artifact"],
+            "properties": {"artifact": {"type": "string", "minLength": 1}}
+          }
+        }
+      ],
+      "additionalProperties": true
+    },
+    "sources": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/sourceRecord"}
+    },
+    "semantic": {
+      "type": "object",
+      "description": "Оркестратор не ставит status=ready, пока technical.status не ready и technical.artifact не указывает на отчёт обхода."
+    },
+    "research": {"type": "object"},
+    "brand": {"type": "object"},
+    "outline": {"type": "object"},
+    "links": {"type": "object"},
+    "draft": {"type": "object"},
+    "media": {
+      "type": "object",
+      "properties": {
+        "inline_assets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["kind", "src", "alt", "width", "height", "origin", "qa_status"],
+            "properties": {
+              "kind": {"enum": ["image", "gif"]},
+              "path": {"type": "string", "minLength": 1},
+              "src": {"type": "string", "minLength": 1},
+              "alt": {"type": "string", "minLength": 1},
+              "caption": {"type": "string"},
+              "width": {"type": "integer", "minimum": 1},
+              "height": {"type": "integer", "minimum": 1},
+              "bytes": {"type": "integer", "minimum": 1},
+              "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+              "origin": {"type": "string", "minLength": 1},
+              "generator": {"type": "string"},
+              "prompt": {"type": "string"},
+              "placement_after_block": {"type": "integer", "minimum": 0},
+              "qa_status": {"enum": ["not_checked", "preview_passed", "live_passed", "failed"]},
+              "motion_purpose": {"type": "string", "minLength": 1},
+              "reduced_motion_fallback": {"type": "string", "minLength": 1}
+            },
+            "allOf": [{
+              "if": {"properties": {"kind": {"const": "gif"}}, "required": ["kind"]},
+              "then": {"required": ["motion_purpose", "reduced_motion_fallback", "bytes"]}
+            }],
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "meta": {"type": "object"},
+    "audit": {
+      "type": "object",
+      "properties": {
+        "status": {"enum": ["pass", "fail", "ready", "needs_input", "blocked", "failed"]},
+        "editorial_review": {"type": ["string", "null"]},
+        "technical_preview": {"type": ["string", "null"]},
+        "live_seo_check": {"type": ["string", "null"]}
+      },
+      "additionalProperties": true
+    },
+    "publication": {
+      "type": "object",
+      "properties": {
+        "status": {"enum": ["ready", "needs_input", "blocked", "failed"]},
+        "adapter": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Семейство записи: wordpress или custom-site. ID реализации площадки кладут в implementation, если adapter уже custom-site."
+        },
+        "implementation": {
+          "type": ["string", "null"],
+          "description": "Для custom-site: ID реализации, например site-sqlite-blog. Не второй адаптер."
+        },
+        "mode": {"enum": ["draft", "publish", null]},
+        "draft_id": {"type": ["string", "null"]},
+        "preview_url": {"type": ["string", "null"]},
+        "read_back": {"$ref": "#/$defs/readBack"},
+        "human_decision": {"type": ["string", "null"]},
+        "release_sha": {"type": ["string", "null"]},
+        "live_url": {"type": ["string", "null"]},
+        "live_checks": {"$ref": "#/$defs/liveChecks"},
+        "rollback": {"$ref": "#/$defs/rollback"}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"adapter": {"const": "custom-site"}},
+            "required": ["adapter"]
+          },
+          "then": {
+            "required": ["implementation"],
+            "properties": {"implementation": {"type": "string", "minLength": 1}}
+          }
+        }
+      ],
+      "additionalProperties": true
+    },
+    "inputs_used": {"type": "array", "items": {"type": "string"}},
+    "assumptions": {"type": "array", "items": {"type": "string"}},
+    "missing_inputs": {"type": "array", "items": {"type": "string"}}
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": ["technical", "semantic"],
+        "properties": {
+          "semantic": {
+            "type": "object",
+            "properties": {"status": {"const": "ready"}},
+            "required": ["status"]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "technical": {
+            "type": "object",
+            "required": ["status", "artifact"],
+            "properties": {
+              "status": {"const": "ready"},
+              "artifact": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "publication": {
+            "type": "object",
+            "properties": {
+              "draft_id": {"type": "string", "minLength": 1}
+            },
+            "required": ["draft_id"]
+          }
+        },
+        "required": ["publication"]
+      },
+      "then": {
+        "required": ["audit"],
+        "properties": {
+          "audit": {
+            "type": "object",
+            "required": ["status"],
+            "properties": {"status": {"const": "pass"}}
+          },
+          "publication": {
+            "required": ["adapter", "read_back", "preview_url"],
+            "properties": {
+              "preview_url": {"type": "string", "minLength": 1},
+              "read_back": {
+                "type": "object",
+                "required": ["status"],
+                "properties": {"status": {"const": "pass"}}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "publication": {
+            "type": "object",
+            "properties": {"status": {"const": "ready"}},
+            "required": ["status"]
+          }
+        },
+        "required": ["publication"]
+      },
+      "then": {
+        "required": ["audit"],
+        "properties": {
+          "audit": {
+            "type": "object",
+            "required": ["status"],
+            "properties": {"status": {"const": "pass"}}
+          },
+          "publication": {
+            "required": ["adapter", "mode", "draft_id", "preview_url", "read_back", "live_url", "live_checks", "rollback"],
+            "properties": {
+              "mode": {"const": "publish"},
+              "draft_id": {"type": "string", "minLength": 1},
+              "preview_url": {"type": "string", "minLength": 1},
+              "live_url": {"type": "string", "minLength": 1},
+              "read_back": {
+                "required": ["status"],
+                "properties": {"status": {"const": "pass"}}
+              },
+              "live_checks": {
+                "required": ["http", "render_desktop", "render_mobile", "canonical", "robots", "sitemap", "og"],
+                "properties": {
+                  "http": {"$ref": "#/$defs/passedCheck"},
+                  "render_desktop": {"$ref": "#/$defs/passedCheck"},
+                  "render_mobile": {"$ref": "#/$defs/passedCheck"},
+                  "canonical": {"$ref": "#/$defs/passedCheck"},
+                  "robots": {"$ref": "#/$defs/passedCheck"},
+                  "sitemap": {"$ref": "#/$defs/passedCheck"},
+                  "og": {"$ref": "#/$defs/passedCheck"}
+                }
+              },
+              "rollback": {
+                "required": ["status", "plan"],
+                "properties": {
+                  "status": {"const": "ready"},
+                  "plan": {"type": "string", "minLength": 1}
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sourceCheck": {
+      "type": "object",
+      "required": ["name", "status", "reason"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "status": {"const": "not_checked"},
+        "reason": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": true
+    },
+    "sourceRecord": {
+      "type": "object",
+      "required": ["name", "status"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "status": {"enum": ["ready", "not_checked", "needs_input", "blocked", "failed"]},
+        "reason": {"type": ["string", "null"]},
+        "checked_at": {"type": ["string", "null"]},
+        "artifact": {"type": ["string", "null"]}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"status": {"const": "not_checked"}},
+            "required": ["status"]
+          },
+          "then": {
+            "required": ["reason"],
+            "properties": {"reason": {"type": "string", "minLength": 1}}
+          }
+        }
+      ],
+      "additionalProperties": true
+    },
+    "readBack": {
+      "type": ["object", "null"],
+      "required": ["status"],
+      "properties": {
+        "status": {"enum": ["pass", "fail", "not_checked"]},
+        "compared_fields": {"type": "array", "items": {"type": "string"}},
+        "reason": {"type": ["string", "null"]}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"status": {"const": "not_checked"}},
+            "required": ["status"]
+          },
+          "then": {
+            "required": ["reason"],
+            "properties": {"reason": {"type": "string", "minLength": 1}}
+          }
+        }
+      ],
+      "additionalProperties": true
+    },
+    "checkResult": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {"enum": ["pass", "fail", "not_checked"]},
+        "evidence": {"type": ["string", "null"]},
+        "reason": {"type": ["string", "null"]}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"status": {"const": "not_checked"}},
+            "required": ["status"]
+          },
+          "then": {
+            "required": ["reason"],
+            "properties": {"reason": {"type": "string", "minLength": 1}}
+          }
+        }
+      ],
+      "additionalProperties": true
+    },
+    "passedCheck": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {"const": "pass"},
+        "evidence": {"type": ["string", "null"]}
+      },
+      "additionalProperties": true
+    },
+    "liveChecks": {
+      "type": ["object", "null"],
+      "properties": {
+        "http": {"$ref": "#/$defs/checkResult"},
+        "render_desktop": {"$ref": "#/$defs/checkResult"},
+        "render_mobile": {"$ref": "#/$defs/checkResult"},
+        "canonical": {"$ref": "#/$defs/checkResult"},
+        "robots": {"$ref": "#/$defs/checkResult"},
+        "sitemap": {"$ref": "#/$defs/checkResult"},
+        "og": {"$ref": "#/$defs/checkResult"}
+      },
+      "additionalProperties": true
+    },
+    "rollback": {
+      "type": ["object", "null"],
+      "properties": {
+        "status": {"enum": ["ready", "not_checked", "failed"]},
+        "plan": {"type": ["string", "null"]},
+        "reason": {"type": ["string", "null"]}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"status": {"const": "not_checked"}},
+            "required": ["status"]
+          },
+          "then": {
+            "required": ["reason"],
+            "properties": {"reason": {"type": "string", "minLength": 1}}
+          }
+        }
+      ],
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

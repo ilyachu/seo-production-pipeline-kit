@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "topic": "как выбрать матрас",
+  "status": "needs_input",
+  "business_goal": "продажа матрасов с доставкой",
+  "region": "Москва и область",
+  "semantic": {},
+  "research": {},
+  "brand": {},
+  "outline": {},
+  "links": {},
+  "draft": {},
+  "media": {},
+  "meta": {},
+  "audit": {},
+  "publication": {},
+  "inputs_used": ["topic", "business_goal", "region"],
+  "assumptions": [],
+  "missing_inputs": ["Wordstat export", "product proof", "internal URL inventory"]
+}

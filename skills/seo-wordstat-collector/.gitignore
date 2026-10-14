@@ -1,0 +1,20 @@
+# Секреты и локальные данные скилла. Ничего из этого не коммитим.
+
+# Авторизованные ключи сервисного аккаунта Yandex Cloud
+authorized_key*.json
+*authorized_key*.json
+key.json
+*key.pem
+*.pem
+
+# Рабочий конфиг (в репозитории живёт только config.example.json)
+config.json
+config.local.json
+config.*.json
+!config.example.json
+
+# Кэш выгрузок и артефакты сбора
+cache/
+*.cache.json
+wordstat-*.json
+wordstat-*.csv

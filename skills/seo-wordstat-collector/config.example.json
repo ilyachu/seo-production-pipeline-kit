@@ -1,0 +1,10 @@
+{
+  "backend": "cloud",
+  "folder_id": "REPLACE_ME_folder_id_из_консоли_Yandex_Cloud",
+  "authorized_key_file": "REPLACE_ME_абсолютный_путь_к_authorized_key.json_вне_репозитория",
+  "endpoints": {
+    "iam_token": "https://iam.api.cloud.yandex.net/iam/v1/tokens",
+    "top_requests": "https://searchapi.api.cloud.yandex.net/v2/wordstat/topRequests"
+  },
+  "request_timeout_seconds": 30
+}
